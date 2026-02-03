@@ -1,0 +1,166 @@
+networks:
+  app-network:
+    driver: bridge
+  db-network:
+    driver: bridge
+
+volumes:
+  db_authors_data:
+    driver: local
+  db_publications_data:
+    driver: local
+
+services:
+  # Authors Database
+  db-authors:
+    image: mysql:8.0
+    container_name: db-authors
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_AUTHORS_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_AUTHORS_DATABASE}
+      MYSQL_USER: ${DB_AUTHORS_USERNAME}
+      MYSQL_PASSWORD: ${DB_AUTHORS_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_authors_data:/var/lib/mysql
+    networks:
+      - db-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_AUTHORS_ROOT_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Publications Database
+  db-publications:
+    image: mysql:8.0
+    container_name: db-publications
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PUBLICATIONS_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_PUBLICATIONS_DATABASE}
+      MYSQL_USER: ${DB_PUBLICATIONS_USERNAME}
+      MYSQL_PASSWORD: ${DB_PUBLICATIONS_PASSWORD}
+    ports:
+      - "3308:3306"
+    volumes:
+      - db_publications_data:/var/lib/mysql
+    networks:
+      - db-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PUBLICATIONS_ROOT_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx for Authors Service
+  nginx-authors:
+    image: nginx:alpine
+    container_name: nginx-authors
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/authors.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./Backend/Authors-microservice:/var/www/html
+    depends_on:
+      authors-service:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # Authors Service
+  authors-service:
+    build:
+      context: ./Backend/Authors-microservice
+      dockerfile: Dockerfile
+    container_name: authors-service
+    restart: unless-stopped
+    environment:
+      APP_NAME: "Authors Service"
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db-authors
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_AUTHORS_DATABASE}
+      DB_USERNAME: ${DB_AUTHORS_USERNAME}
+      DB_PASSWORD: ${DB_AUTHORS_PASSWORD}
+    depends_on:
+      db-authors:
+        condition: service_healthy
+    networks:
+      - app-network
+      - db-network
+    healthcheck:
+      test: ["CMD", "php", "artisan", "migrate:status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Publications Service
+  publications-service:
+    build:
+      context: ./Backend/Micorservicio_Publicaciones
+      dockerfile: Dockerfile
+    container_name: publications-service
+    restart: unless-stopped
+    environment:
+      SPRING_APPLICATION_NAME: publications-service
+      SERVER_PORT: 5050
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-publications:3306/${DB_PUBLICATIONS_DATABASE}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${DB_PUBLICATIONS_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PUBLICATIONS_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      AUTHOR_SERVICE_URL: http://nginx-authors:80/api/authors
+    ports:
+      - "8081:5050"
+    depends_on:
+      db-publications:
+        condition: service_healthy
+      authors-service:
+        condition: service_healthy
+    networks:
+      - app-network
+      - db-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # Frontend
+  frontend:
+    build:
+      context: ./Frontend/publications
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_AUTHORS_API_URL: http://localhost:8000/api
+      REACT_APP_PUBLICATIONS_API_URL: http://localhost:5050
+    ports:
+      - "3000:80"
+    depends_on:
+      authors-service:
+        condition: service_healthy
+      publications-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
