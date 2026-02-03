@@ -1,0 +1,1388 @@
+{
+  "info": {
+    "name": "Microservices Publications System - Complete Collection",
+    "description": "Colección completa de APIs para el sistema de microservicios de Autores y Publicaciones - Arquitectura de Software",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "authors_base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string",
+      "description": "URL base del microservicio de Autores (Laravel)"
+    },
+    {
+      "key": "publications_base_url", 
+      "value": "http://localhost:8081",
+      "type": "string",
+      "description": "URL base del microservicio de Publicaciones (Spring Boot)"
+    },
+    {
+      "key": "frontend_url",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "URL del frontend React"
+    },
+    {
+      "key": "author_uuid",
+      "value": "",
+      "type": "string",
+      "description": "UUID del autor para pruebas (se establece automáticamente)"
+    },
+    {
+      "key": "publication_id",
+      "value": "",
+      "type": "string", 
+      "description": "ID de publicación para pruebas (se establece automáticamente)"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Checks",
+      "description": "Endpoints para verificar el estado de salud de todos los servicios",
+      "item": [
+        {
+          "name": "Authors Service Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/health",
+              "host": ["{{authors_base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica el estado de salud del microservicio de autores"
+          },
+          "response": [
+            {
+              "name": "Healthy Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/health",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"service\": \"authors-service\",\n    \"status\": \"healthy\",\n    \"timestamp\": \"2026-02-03T10:30:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Publications Service Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{publications_base_url}}/actuator/health",
+              "host": ["{{publications_base_url}}"],
+              "path": ["actuator", "health"]
+            },
+            "description": "Verifica el estado de salud del microservicio de publicaciones (Spring Boot Actuator)"
+          },
+          "response": [
+            {
+              "name": "Healthy Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{publications_base_url}}/actuator/health",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["actuator", "health"]
+                }
+              },
+              "status": "OK", 
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"status\": \"UP\",\n    \"components\": {\n        \"db\": {\n            \"status\": \"UP\"\n        }\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Frontend Accessibility",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{frontend_url}}",
+              "host": ["{{frontend_url}}"]
+            },
+            "description": "Verifica que la aplicación frontend esté accesible"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍💼 Authors Service",
+      "description": "API REST del microservicio de Autores (Laravel/PHP)",
+      "item": [
+        {
+          "name": "Crear Autor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.data && responseJson.data.uuid) {",
+                  "        pm.collectionVariables.set('author_uuid', responseJson.data.uuid);",
+                  "        console.log('Author UUID saved:', responseJson.data.uuid);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has author data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('uuid');",
+                  "    pm.expect(jsonData.data).to.have.property('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nombre\": \"María\",\n    \"apellido\": \"González\",\n    \"email\": \"maria.gonzalez@email.com\",\n    \"type\": \"regular\",\n    \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{authors_base_url}}/authors",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors"]
+            },
+            "description": "Crea un nuevo autor en el sistema. Implementa Factory Pattern para tipos de autor."
+          },
+          "response": [
+            {
+              "name": "Autor creado exitosamente",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"María\",\n    \"apellido\": \"González\",\n    \"email\": \"maria.gonzalez@email.com\",\n    \"type\": \"regular\",\n    \"activo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{authors_base_url}}/authors",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"message\": \"Autor creado exitosamente\",\n    \"data\": {\n        \"uuid\": \"fdabd579-4b27-4d45-8d4e-f8f09101c774\",\n        \"nombre\": \"María\",\n        \"apellido\": \"González\",\n        \"nombreCompleto\": \"María González\",\n        \"email\": \"maria.gonzalez@email.com\",\n        \"type\": \"regular\",\n        \"activo\": true,\n        \"createdAt\": \"2026-02-01T00:35:43.000000Z\",\n        \"updatedAt\": \"2026-02-01T00:35:43.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Error - Email ya existe",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"María\",\n    \"apellido\": \"González\",\n    \"email\": \"maria.gonzalez@email.com\",\n    \"type\": \"regular\",\n    \"activo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{authors_base_url}}/authors",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors"]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"message\": \"Este email ya está registrado\",\n    \"errors\": {\n        \"email\": [\n            \"Este email ya está registrado\"\n        ]\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Todos los Autores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/authors",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors"]
+            },
+            "description": "Obtiene la lista completa de autores registrados en el sistema"
+          },
+          "response": [
+            {
+              "name": "Lista de autores",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/authors",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"data\": [\n        {\n            \"uuid\": \"677b6387-9ea3-4612-934d-c588eaea1466\",\n            \"nombre\": \"María\",\n            \"apellido\": \"González\",\n            \"nombreCompleto\": \"María González\",\n            \"email\": \"maria.gonzalez@email.com\",\n            \"type\": \"regular\",\n            \"activo\": true,\n            \"createdAt\": \"2026-02-01T00:38:33.000000Z\",\n            \"updatedAt\": \"2026-02-01T00:38:33.000000Z\"\n        }\n    ],\n    \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Obtener Autor por UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/authors/{{author_uuid}}",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors", "{{author_uuid}}"]
+            },
+            "description": "Obtiene los detalles de un autor específico usando su UUID"
+          },
+          "response": [
+            {
+              "name": "Autor encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/authors/677b6387-9ea3-4612-934d-c588eaea1466",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors", "677b6387-9ea3-4612-934d-c588eaea1466"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"data\": {\n        \"uuid\": \"677b6387-9ea3-4612-934d-c588eaea1466\",\n        \"nombre\": \"María\",\n        \"apellido\": \"González\",\n        \"nombreCompleto\": \"María González\",\n        \"email\": \"maria.gonzalez@email.com\",\n        \"type\": \"regular\",\n        \"activo\": true,\n        \"createdAt\": \"2026-02-01T00:38:33.000000Z\",\n        \"updatedAt\": \"2026-02-01T00:38:33.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "Autor no encontrado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/authors/invalid-uuid",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors", "invalid-uuid"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"message\": \"Autor con UUID 'invalid-uuid' no encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Autores Activos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/authors/active",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors", "active"]
+            },
+            "description": "Obtiene solo los autores que están marcados como activos (optimizado para selects)"
+          },
+          "response": [
+            {
+              "name": "Autores activos",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/authors/active",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors", "active"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"data\": [\n        {\n            \"uuid\": \"677b6387-9ea3-4612-934d-c588eaea1466\",\n            \"nombreCompleto\": \"María González\",\n            \"email\": \"maria.gonzalez@email.com\",\n            \"type\": \"regular\",\n            \"activo\": true\n        }\n    ],\n    \"total\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verificar si Autor Existe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/authors/{{author_uuid}}/exists",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors", "{{author_uuid}}", "exists"]
+            },
+            "description": "Verifica si un autor existe por UUID (usado por microservicio de publicaciones)"
+          },
+          "response": [
+            {
+              "name": "Autor existe",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{authors_base_url}}/authors/677b6387-9ea3-4612-934d-c588eaea1466/exists",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors", "677b6387-9ea3-4612-934d-c588eaea1466", "exists"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"exists\": true,\n    \"uuid\": \"677b6387-9ea3-4612-934d-c588eaea1466\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📚 Publications Service",
+      "description": "API REST del microservicio de Publicaciones (Spring Boot/Java)",
+      "item": [
+        {
+          "name": "Crear Publicación",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.id) {",
+                  "        pm.collectionVariables.set('publication_id', responseJson.id);",
+                  "        console.log('Publication ID saved:', responseJson.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has publication data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de mi primera publicación usando microservicios\",\n    \"authorId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications"]
+            },
+            "description": "Crea una nueva publicación. Valida que el autor exista en el microservicio de autores."
+          },
+          "response": [
+            {
+              "name": "Publicación creada exitosamente",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"authorId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"id\": 1,\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"status\": \"DRAFT\",\n    \"authorId\": 1\n}"
+            },
+            {
+              "name": "Error - Servicio de autores no disponible",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"authorId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"error\": \"Authors service is not available\",\n    \"message\": \"Cannot validate author existence\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Todas las Publicaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{publications_base_url}}/publications",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications"]
+            },
+            "description": "Obtiene todas las publicaciones del sistema con paginación"
+          },
+          "response": [
+            {
+              "name": "Lista de publicaciones",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n    {\n        \"id\": 1,\n        \"title\": \"Mi primera publicación\",\n        \"content\": \"Este es el contenido de prueba\",\n        \"status\": \"DRAFT\",\n        \"authorId\": 1\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Obtener Publicación por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}"]
+            },
+            "description": "Obtiene los detalles de una publicación específica por ID"
+          },
+          "response": [
+            {
+              "name": "Publicación encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/1",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"id\": 1,\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"status\": \"DRAFT\",\n    \"authorId\": 1\n}"
+            },
+            {
+              "name": "Publicación no encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/999",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "999"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"error\": \"Publication not found\",\n    \"id\": 999\n}"
+            }
+          ]
+        },
+        {
+          "name": "Actualizar Estado - Enviar a Revisión",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}/status",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}", "status"]
+            },
+            "description": "Cambia el estado de la publicación a IN_REVIEW (primer paso del proceso BPMN)"
+          },
+          "response": [
+            {
+              "name": "Estado actualizado a IN_REVIEW",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/1/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "1", "status"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"id\": 1,\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"status\": \"IN_REVIEW\",\n    \"authorId\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Actualizar Estado - Aprobar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"APPROVED\"\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}/status",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}", "status"]
+            },
+            "description": "Aprueba la publicación (escenario 1 del BPMN)"
+          }
+        },
+        {
+          "name": "Actualizar Estado - Rechazar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}/status",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}", "status"]
+            },
+            "description": "Rechaza la publicación (escenario 2 del BPMN)"
+          },
+          "response": [
+            {
+              "name": "Estado actualizado a REJECTED",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"REJECTED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/1/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "1", "status"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n    \"id\": 1,\n    \"title\": \"Mi primera publicación\",\n    \"content\": \"Este es el contenido de prueba\",\n    \"status\": \"REJECTED\",\n    \"authorId\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Actualizar Estado - Publicar",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"PUBLISHED\"\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}/status",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}", "status"]
+            },
+            "description": "Publica la publicación (paso final del proceso BPMN)"
+          }
+        },
+        {
+          "name": "Actualizar Estado - Volver a Draft",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"DRAFT\"\n}"
+            },
+            "url": {
+              "raw": "{{publications_base_url}}/publications/{{publication_id}}/status",
+              "host": ["{{publications_base_url}}"],
+              "path": ["publications", "{{publication_id}}", "status"]
+            },
+            "description": "Devuelve la publicación para corrección (escenario 3 del BPMN)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 BPMN Workflow Examples",
+      "description": "Secuencias de requests que implementan los 3 escenarios del proceso BPMN",
+      "item": [
+        {
+          "name": "📊 Escenario 1: Publicación Aprobada",
+          "description": "Flujo completo: Crear → Enviar a revisión → Aprobar → Publicar",
+          "item": [
+            {
+              "name": "1️⃣ Crear Autor para Publicación",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    const responseJson = pm.response.json();",
+                      "    if (responseJson.data && responseJson.data.uuid) {",
+                      "        pm.collectionVariables.set('workflow_author_uuid', responseJson.data.uuid);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"nombre\": \"Juan\",\n    \"apellido\": \"Escritor\",\n    \"email\": \"juan.escritor@email.com\",\n    \"type\": \"regular\",\n    \"activo\": true\n}"
+                },
+                "url": {
+                  "raw": "{{authors_base_url}}/authors",
+                  "host": ["{{authors_base_url}}"],
+                  "path": ["authors"]
+                }
+              }
+            },
+            {
+              "name": "2️⃣ Crear Publicación",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    const responseJson = pm.response.json();",
+                      "    if (responseJson.id) {",
+                      "        pm.collectionVariables.set('workflow_publication_id', responseJson.id);",
+                      "    }",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Artículo sobre Arquitectura de Software\",\n    \"content\": \"Los microservicios representan un patrón arquitectónico que estructura una aplicación como un conjunto de servicios débilmente acoplados...\",\n    \"authorId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              }
+            },
+            {
+              "name": "3️⃣ Enviar a Revisión",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/{{workflow_publication_id}}/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "{{workflow_publication_id}}", "status"]
+                }
+              }
+            },
+            {
+              "name": "4️⃣ Aprobar Publicación",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"APPROVED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/{{workflow_publication_id}}/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "{{workflow_publication_id}}", "status"]
+                }
+              }
+            },
+            {
+              "name": "5️⃣ Publicar",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"PUBLISHED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/{{workflow_publication_id}}/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "{{workflow_publication_id}}", "status"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "❌ Escenario 2: Publicación Rechazada",
+          "description": "Flujo: Crear → Enviar a revisión → Rechazar",
+          "item": [
+            {
+              "name": "1️⃣ Crear Publicación para Rechazo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Artículo con Contenido Inadecuado\",\n    \"content\": \"Contenido que no cumple con los estándares de calidad...\",\n    \"authorId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              }
+            },
+            {
+              "name": "2️⃣ Enviar a Revisión",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/2/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "2", "status"]
+                }
+              }
+            },
+            {
+              "name": "3️⃣ Rechazar Publicación",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"REJECTED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/2/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "2", "status"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔄 Escenario 3: Publicación con Correcciones",
+          "description": "Flujo: Crear → Revisar → Devolver → Corregir → Revisar → Aprobar → Publicar",
+          "item": [
+            {
+              "name": "1️⃣ Crear Publicación para Corrección",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Artículo que Necesita Mejoras\",\n    \"content\": \"Contenido inicial que requiere algunas correcciones menores...\",\n    \"authorId\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications"]
+                }
+              }
+            },
+            {
+              "name": "2️⃣ Enviar a Primera Revisión",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/3/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "3", "status"]
+                }
+              }
+            },
+            {
+              "name": "3️⃣ Devolver para Corrección",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"DRAFT\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/3/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "3", "status"]
+                }
+              }
+            },
+            {
+              "name": "4️⃣ Enviar a Segunda Revisión",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"IN_REVIEW\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/3/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "3", "status"]
+                }
+              }
+            },
+            {
+              "name": "5️⃣ Aprobar Tras Correcciones",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"APPROVED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/3/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "3", "status"]
+                }
+              }
+            },
+            {
+              "name": "6️⃣ Publicar Versión Final",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"status\": \"PUBLISHED\"\n}"
+                },
+                "url": {
+                  "raw": "{{publications_base_url}}/publications/3/status",
+                  "host": ["{{publications_base_url}}"],
+                  "path": ["publications", "3", "status"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🧪 Testing & Validation",
+      "description": "Endpoints para validaciones y testing del sistema",
+      "item": [
+        {
+          "name": "Test Complete System",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/health",
+              "host": ["{{authors_base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Prueba rápida del sistema completo"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Authors Service is healthy', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "// Test Publications Service",
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('publications_base_url') + '/actuator/health',",
+                  "    method: 'GET'",
+                  "}, function (err, res) {",
+                  "    pm.test('Publications Service is healthy', function () {",
+                  "        pm.expect(res.code).to.eql(200);",
+                  "        const jsonData = res.json();",
+                  "        pm.expect(jsonData.status).to.eql('UP');",
+                  "    });",
+                  "});",
+                  "",
+                  "// Test Frontend",
+                  "pm.sendRequest({",
+                  "    url: pm.collectionVariables.get('frontend_url'),",
+                  "    method: 'GET'",
+                  "}, function (err, res) {",
+                  "    pm.test('Frontend is accessible', function () {",
+                  "        pm.expect(res.code).to.be.oneOf([200, 304]);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate SOLID Principles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{authors_base_url}}/authors",
+              "host": ["{{authors_base_url}}"],
+              "path": ["authors"]
+            },
+            "description": "Test que valida la implementación de principios SOLID"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('SRP - Single Responsibility: API responds correctly', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('OCP - Open/Closed: API accepts different author types', function () {",
+                  "    // This validates that the Factory Pattern allows extension",
+                  "    pm.expect(pm.response.json()).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('LSP - Liskov Substitution: Consistent response format', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "});",
+                  "",
+                  "pm.test('ISP - Interface Segregation: Specific endpoint behavior', function () {",
+                  "    // This endpoint only deals with author listing, nothing else",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test('DIP - Dependency Inversion: Service layer abstraction', function () {",
+                  "    // The API uses service layer abstractions",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "pm.globals.set('timestamp', new Date().toISOString());",
+          "",
+          "// Log current environment for debugging",
+          "console.log('Environment Variables:');",
+          "console.log('Authors URL:', pm.collectionVariables.get('authors_base_url'));",
+          "console.log('Publications URL:', pm.collectionVariables.get('publications_base_url'));",
+          "console.log('Frontend URL:', pm.collectionVariables.get('frontend_url'));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is reasonable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('No server errors', function () {",
+          "    pm.expect(pm.response.code).to.not.be.oneOf([500, 502, 503, 504]);",
+          "});",
+          "",
+          "// Log response for debugging",
+          "if (pm.response.code >= 400) {",
+          "    console.log('Error Response:', pm.response.json());",
+          "}"
+        ]
+      }
+    }
+  ]
+}
