@@ -9,7 +9,7 @@ Sistema de microservicios para gestión de autores y publicaciones, compuesto po
 - **Frontend**: Aplicación React para interfaz de usuario
 - **Bases de Datos**: MySQL para persistencia de datos
 
-## 🚀 Despliegue con Docker
+##  Despliegue con Docker
 
 ### Prerrequisitos
 
@@ -56,7 +56,7 @@ Proyecto ARQ SW/
 - **db_authors_data**: Datos de la base de autores
 - **db_publications_data**: Datos de la base de publicaciones
 
-## 📋 Instrucciones de Despliegue
+##  Instrucciones de Despliegue
 
 ### 1. Clonar y Preparar el Proyecto
 
@@ -119,7 +119,7 @@ Una vez todos los servicios estén en estado "healthy":
 - **Authors API**: http://localhost:8000/api/authors
 - **Publications API**: http://localhost:5050/publications
 
-## 🏥 Health Checks
+##  Health Checks
 
 Todos los servicios incluyen health checks automáticos:
 
@@ -128,7 +128,7 @@ Todos los servicios incluyen health checks automáticos:
 - **Bases de Datos**: Comando `mysqladmin ping`
 - **Frontend**: Verificación HTTP básica
 
-## 🔧 Comandos Útiles
+##  Comandos Útiles
 
 ### Gestión de Servicios
 
@@ -172,7 +172,7 @@ docker-compose up -d --scale frontend=3
 docker stats
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Problemas Comunes
 
@@ -202,14 +202,14 @@ docker system prune -f
 docker-compose up --build
 ```
 
-## 📝 Notas de Desarrollo
+##  Notas de Desarrollo
 
 - Los servicios están configurados para **auto-restart** en caso de fallo
 - Las bases de datos usan volúmenes persistentes para conservar datos
 - El frontend incluye proxy automático para las APIs
 - Todos los servicios incluyen configuraciones de producción optimizadas
 
-## 🔒 Seguridad
+##  Seguridad
 
 - Variables de entorno para credenciales sensibles
 - Redes Docker aisladas para diferentes capas
